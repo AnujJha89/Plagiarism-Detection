@@ -1,170 +1,526 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <script>
-        (function() {
-            let theme = "dark"; // Default fallback
-            const hasManualTheme = localStorage.getItem("lemma-theme-manual");
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lemma - AI Plagiarism & Detection</title>
+  <meta name="description" content="Lemma is a powerful tool for checking plagiarism and detecting AI-generated text in research papers." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,700;12..96,800&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
 
-            if (hasManualTheme) {
-                theme = localStorage.getItem("lemma-theme") || "dark";
-            } else {
-                // Auto-detect system theme for all users
-                const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-                theme = systemPrefersDark ? "dark" : "light";
-            }
+  <style>
+    /* RESET AND BASE */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-            document.documentElement.setAttribute("data-theme", theme);
-        })();
-    </script>
-    <title>Lemma - Local-First Plagiarism Analysis & Rewriting Platform</title>
-    <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
-    <!-- Google Fonts: Inter & Outfit -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-fontawesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="assets/css/style.css">
+    :root {
+      --cream:   #f5efe2;
+      --ink:     #17140d;
+      --teal:    #12b3a4;
+      --coral:   #ff5b57;
+      --mustard: #ffc531;
+      --violet:  #6b5be6;
+      --sky:     #3aa0ff;
+      --muted:   #5a5240;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--ink);
+      overflow-x: hidden;
+      min-width: 320px;
+    }
+
+    /* KEYFRAMES */
+    @keyframes drift {
+      0%   { transform: translateY(0px) rotate(0deg); }
+      50%  { transform: translateY(-18px) rotate(8deg); }
+      100% { transform: translateY(0px) rotate(0deg); }
+    }
+    @keyframes drift2 {
+      0%   { transform: translateY(0px) rotate(-5deg); }
+      50%  { transform: translateY(-14px) rotate(5deg); }
+      100% { transform: translateY(0px) rotate(-5deg); }
+    }
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    @keyframes bob {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-12px); }
+    }
+    @keyframes sway {
+      0%,100% { transform: rotate(-6deg); }
+      50%      { transform: rotate(6deg); }
+    }
+    @keyframes float-gentle {
+      0%   { transform: translate(0,0) rotate(0deg); }
+      33%  { transform: translate(6px,-10px) rotate(4deg); }
+      66%  { transform: translate(-4px,-6px) rotate(-3deg); }
+      100% { transform: translate(0,0) rotate(0deg); }
+    }
+
+    /* NAV */
+    nav {
+      position: relative;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 60px;
+      background: var(--cream);
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-tile {
+      width: 42px;
+      height: 42px;
+      background: var(--violet);
+      border: 3px solid var(--ink);
+      border-radius: 10px;
+      box-shadow: 5px 5px 0 var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .wordmark {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 26px;
+      color: var(--ink);
+      letter-spacing: -0.5px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+      font-size: 15px;
+      color: var(--ink);
+      text-decoration: none;
+      transition: color .18s;
+    }
+
+    .nav-links a:hover { color: var(--coral); }
+
+    .nav-cta {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 22px;
+      background: var(--teal);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      border: 3px solid var(--ink);
+      border-radius: 100px;
+      box-shadow: 5px 5px 0 var(--ink);
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .nav-cta:hover {
+      transform: translate(2px, 2px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 32px;
+      align-items: center;
+      padding: 64px 60px 80px;
+      min-height: calc(100vh - 78px);
+      overflow: hidden;
+    }
+
+    /* CONFETTI LAYER */
+    .confetti-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .confetti-shape { position: absolute; pointer-events: none; }
+
+    .s1 { top: 8%; left: 3%; animation: drift 7s ease-in-out infinite; }
+    .s2 { top: 6%; right: 4%; animation: float-gentle 9s ease-in-out infinite; }
+    .s3 { top: 38%; left: 1%; animation: bob 6s ease-in-out infinite; }
+    .s4 { top: 22%; right: 2%; animation: spin-slow 22s linear infinite; }
+    .s5 { bottom: 28%; left: 6%; animation: sway 5s ease-in-out infinite; transform-origin: top center; }
+    .s6 { bottom: 10%; left: 36%; animation: drift2 8s ease-in-out infinite; }
+    .s7 { top: 15%; left: 42%; animation: bob 4.5s ease-in-out infinite; }
+    .s8 { top: 55%; right: 5%; animation: bob 7s ease-in-out infinite; }
+    .s9 { bottom: 5%; right: 8%; animation: spin-slow 30s linear infinite; }
+
+    /* HERO COPY */
+    .hero-copy {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .eyebrow-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: var(--violet);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      border: 3px solid var(--ink);
+      border-radius: 100px;
+      box-shadow: 3px 3px 0 var(--ink);
+      width: fit-content;
+    }
+
+    .eyebrow-dot {
+      width: 9px;
+      height: 9px;
+      background: var(--mustard);
+      border-radius: 50%;
+      border: 2px solid var(--ink);
+      flex-shrink: 0;
+    }
+
+    .hero-headline {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 78px;
+      line-height: .97;
+      letter-spacing: -2.5px;
+      color: var(--ink);
+    }
+
+    .highlight-wrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    .highlight-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 2px -4px;
+      z-index: -1;
+      transform: rotate(-1.4deg);
+      border-radius: 3px;
+    }
+
+    .hl-mustard::before { background: var(--mustard); }
+    .hl-teal::before    { background: var(--teal); }
+
+    .hero-lead {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--muted);
+      max-width: 490px;
+      font-weight: 400;
+    }
+
+    /* CTA ROW */
+    .cta-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 30px;
+      background: var(--coral);
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      border: 3px solid var(--ink);
+      border-radius: 100px;
+      box-shadow: 8px 8px 0 var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .btn-primary:hover {
+      transform: translate(4px, 4px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 30px;
+      background: #fff;
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      border: 3px solid var(--ink);
+      border-radius: 100px;
+      box-shadow: 8px 8px 0 var(--ink);
+      cursor: pointer;
+      text-decoration: none;
+      transition: transform .15s, box-shadow .15s;
+    }
+
+    .btn-secondary:hover {
+      transform: translate(4px, 4px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    /* FEATURES */
+    .features {
+      padding: 96px 60px 100px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .features-header {
+      text-align: center;
+      margin-bottom: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .features-heading {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 800;
+      font-size: 48px;
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      color: var(--ink);
+      max-width: 640px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .feature-card {
+      background: #fff;
+      border: 3px solid var(--ink);
+      border-radius: 22px;
+      box-shadow: 8px 8px 0 var(--ink);
+      padding: 32px 28px 28px;
+      position: relative;
+      overflow: hidden;
+      transition: transform .18s, box-shadow .18s;
+    }
+
+    .feature-card:hover {
+      transform: translate(4px, 4px);
+      box-shadow: 3px 3px 0 var(--ink);
+    }
+
+    .icon-chip {
+      width: 62px;
+      height: 62px;
+      border: 3px solid var(--ink);
+      border-radius: 14px;
+      box-shadow: 3px 3px 0 var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .ic-coral   { background: var(--coral); }
+    .ic-teal    { background: var(--teal); }
+    .ic-violet  { background: var(--violet); }
+
+    .feature-title {
+      font-family: 'Bricolage Grotesque', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--ink);
+      margin-bottom: 10px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .feature-copy {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px;
+      line-height: 1.55;
+      color: var(--muted);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--ink);
+      color: var(--cream);
+      padding: 36px 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .footer-copy {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      opacity: .6;
+    }
+
+    .footer-links { display: flex; gap: 24px; }
+
+    .footer-links a {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--cream);
+      text-decoration: none;
+      opacity: .6;
+      transition: opacity .15s;
+    }
+
+    .footer-links a:hover { opacity: 1; }
+  </style>
 </head>
-<body class="landing-body">
-    <!-- Background Atmospheric Fog Overlays -->
-    <div class="fog-overlay fog-1"></div>
-    <div class="fog-overlay fog-2"></div>
+<body>
 
-    <!-- Interactive Canvas Particle Sphere Container -->
-    <div class="canvas-container">
-        <canvas id="particle-canvas"></canvas>
+  <!-- NAV -->
+  <nav>
+    <a class="nav-logo" href="index.html" id="nav-logo">
+      <div class="logo-tile">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #fff;">
+          <path d="M7 3v11c0 2.2 1.8 4 4 4h6"></path>
+          <circle cx="15" cy="9" r="4"></circle>
+          <line x1="18" y1="12" x2="21" y2="15"></line>
+          <path d="M13.5 9l1 1 1.5-1.5"></path>
+        </svg>
+      </div>
+      <span class="wordmark">Lemma</span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features">Features</a></li>
+      <li><a href="#">API</a></li>
+      <li><a href="#">Docs</a></li>
+    </ul>
+
+    <a class="nav-cta" href="dashboard.html">Launch Workspace</a>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <!-- HERO: COPY COLUMN -->
+    <div class="hero-copy" id="hero-copy">
+
+      <div class="eyebrow-pill" id="eyebrow-pill">
+        <span class="eyebrow-dot"></span>
+        AI Detection & Plagiarism Checker
+      </div>
+
+      <h1 class="hero-headline" id="hero-headline">
+        Analyze research<br>
+        papers <span class="highlight-wrap hl-mustard">accurately</span>
+        and
+        <span class="highlight-wrap hl-teal">fast.</span>
+      </h1>
+
+      <p class="hero-lead" id="hero-lead">
+        Lemma combines robust plagiarism detection with advanced AI-generation checks, giving you full confidence in the integrity of academic texts.
+      </p>
+
+      <div class="cta-row" id="cta-row">
+        <a class="btn-primary" href="dashboard.html">Launch Workspace &rarr;</a>
+        <a class="btn-secondary" href="#features">
+          Explore Features
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES SECTION -->
+  <section class="features" id="features">
+    <div class="features-header">
+      <h2 class="features-heading">
+        Three powerful tools.<br>One unified platform.
+      </h2>
     </div>
 
-    <!-- Landing Header Navigation -->
-    <header class="landing-header">
-        <div class="header-logo">
-            <svg class="brand-icon" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent-purple); flex-shrink: 0; margin-right: 0.5rem;">
-                <path d="M7 3v11c0 2.2 1.8 4 4 4h6"></path>
-                <circle cx="15" cy="9" r="4"></circle>
-                <line x1="18" y1="12" x2="21" y2="15"></line>
-                <path d="M13.5 9l1 1 1.5-1.5"></path>
-            </svg>
-            <span class="logo-text">Lemma</span>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="icon-chip ic-coral">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+            <path d="M4 22h14a2 2 0 0 0 2-2V7.5L14.5 2H6a2 2 0 0 0-2 2v4"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+          </svg>
         </div>
-        <nav class="header-nav">
-            <a href="#features">Features</a>
-            <a href="#technology">Technology</a>
-            <a href="https://github.com" target="_blank">Developers</a>
-        </nav>
-        <div class="header-cta" style="display: flex; align-items: center; gap: 0.75rem;">
-            <button class="theme-toggle" id="theme-toggle-btn" aria-label="Toggle Theme" title="Toggle Theme">
-                <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-                <svg class="moon-icon hidden" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                </svg>
-            </button>
-            <a href="dashboard.html" class="btn btn-secondary nav-cta-btn">
-                Launch Workspace <i class="fa-solid fa-arrow-right"></i>
-            </a>
+        <h3 class="feature-title">Plagiarism Checking</h3>
+        <p class="feature-copy">Dual-tier matching uses classical text overlap and semantic vector similarity to catch verbatim copies and paraphrasing.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="icon-chip ic-teal">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+          </svg>
         </div>
-    </header>
+        <h3 class="feature-title">AI Text Detection</h3>
+        <p class="feature-copy">Identifies text generated by models like ChatGPT, Claude, and Gemini with high confidence to ensure academic authenticity.</p>
+      </div>
 
-    <!-- Hero Showcase -->
-    <section class="hero-section">
-        <div class="hero-content">
-            <h1 class="hero-title">
-                Everything you need to <br>
-                <span class="typewriter-text" id="typewriter">analyze</span><span class="cursor">|</span> <br>
-                academic documents.
-            </h1>
-            
-            <p class="hero-subtitle">
-                A high-performance, local-first academic plagiarism engine. Map lexical and semantic matches directly to character coordinates and compile publication-ready reports.
-            </p>
-
-            <div class="hero-actions">
-                <a href="dashboard.html" class="btn btn-primary hero-btn-main">
-                    Launch Workspace <i class="fa-solid fa-arrow-right btn-arrow"></i>
-                </a>
-                <a href="#features" class="btn btn-outline hero-btn-sub">
-                    Explore Features
-                </a>
-            </div>
-
-            <!-- Stats Rows (Wow Factor) -->
-            <div class="stats-row">
-                <div class="stat-item">
-                    <span class="stat-number"><i class="fa-solid fa-square-check stat-icon"></i> 99.8%</span>
-                    <span class="stat-description">Sentence Match Precision</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number"><i class="fa-solid fa-database stat-icon"></i> Local</span>
-                    <span class="stat-description">Vector Index DB</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number"><i class="fa-solid fa-bolt stat-icon"></i> Instant</span>
-                    <span class="stat-description">PDF Report Compiles</span>
-                </div>
-            </div>
+      <div class="feature-card">
+        <div class="icon-chip ic-violet">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
         </div>
-    </section>
+        <h3 class="feature-title">Academic Rewriting</h3>
+        <p class="feature-copy">Integrates with LLMs to seamlessly rewrite matched sentences while maintaining an academic or creative tone.</p>
+      </div>
+    </div>
+  </section>
 
-    <!-- Partners Row (Academic / ML Stack) -->
-    <section class="partners-section">
-        <div class="partners-header">POWERED BY INTEGRATED LOCAL STACK</div>
-        <div class="partners-logos">
-            <div class="partner-logo"><i class="fa-solid fa-rocket"></i> FastAPI</div>
-            <div class="partner-logo"><i class="fa-solid fa-brain"></i> spaCy</div>
-            <div class="partner-logo"><i class="fa-solid fa-circle-nodes"></i> SentenceTransformers</div>
-            <div class="partner-logo"><i class="fa-solid fa-cube"></i> Ollama</div>
-            <div class="partner-logo"><i class="fa-solid fa-file-pdf"></i> WeasyPrint</div>
-        </div>
-    </section>
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-copy">&copy; 2026 Lemma Plagiarism Engine.</span>
+    <div class="footer-links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
 
-    <!-- Features Section below fold -->
-    <section class="features-section" id="features">
-        <div class="section-tag">Lemma Architecture</div>
-        <h2 class="section-title">Designed for Academic Integrity</h2>
-        
-        <div class="features-grid">
-            <div class="feature-card">
-                <i class="fa-solid fa-shield-halved feature-icon"></i>
-                <h3>Dual-Tier Detection</h3>
-                <p>Combines classical TF-IDF keyword overlap with Sentence-Transformers bi-encoder embeddings to catch both verbatim copying and semantic paraphrasing.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fa-solid fa-circle-dot feature-icon"></i>
-                <h3>Coordinate Highlights</h3>
-                <p>SpaCy segmentation matches sentence tokens back to absolute character indices, allowing the frontend to overlay highlighting markers on the original layout.</p>
-            </div>
-            <div class="feature-card">
-                <i class="fa-solid fa-terminal feature-icon"></i>
-                <h3>Local-First Computing</h3>
-                <p>Processes occur on your machine. No cloud uploads. Keep confidential drafts, unpublished findings, and proprietary theses safe.</p>
-            </div>
-        </div>
-    </section>
-
-    <footer class="landing-footer">
-        <div class="footer-left">
-            <p>&copy; 2026 Lemma Plagiarism Engine. Local Academic Ingestion.</p>
-        </div>
-        <div class="footer-right">
-            <a href="#features">Privacy Policy</a>
-            <a href="#features">Terms of Service</a>
-        </div>
-    </footer>
-
-    <!-- Landing page specific animations and particle sphere -->
-    <script src="assets/js/landing.js"></script>
 </body>
 </html>

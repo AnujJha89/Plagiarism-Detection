@@ -1,7 +1,11 @@
 import io
 import html
 import datetime
-from weasyprint import HTML
+try:
+    from weasyprint import HTML
+    WEASYPRINT_AVAILABLE = True
+except OSError:
+    WEASYPRINT_AVAILABLE = False
 
 class PDFGeneratorService:
     """
@@ -625,6 +629,9 @@ class PDFGeneratorService:
 </html>
 """
         # Compile HTML string to PDF bytes via WeasyPrint
+        # Compile HTML string to PDF bytes via WeasyPrint
+        if not WEASYPRINT_AVAILABLE:
+            raise Exception("WeasyPrint is not available on this system due to missing GTK dependencies.")
         pdf_bytes = io.BytesIO()
         HTML(string=html_content).write_pdf(target=pdf_bytes)
         return pdf_bytes.getvalue()

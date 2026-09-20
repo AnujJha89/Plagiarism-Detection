@@ -1,105 +1,84 @@
 /* -------------------------------------------------------------
  * Lemma Design Tokens & CSS Variables
  * ------------------------------------------------------------- */
-:root,
-html[data-theme="dark"] {
-    --bg-primary: #000000;
-    --bg-secondary: #0a0a0c;
-    --bg-tertiary: #121215;
+:root, html[data-theme="light"] {
+    --cream:   #f5efe2;
+    --ink:     #17140d;
+    --teal:    #12b3a4;
+    --coral:   #ff5b57;
+    --mustard: #ffc531;
+    --violet:  #6b5be6;
+    --sky:     #3aa0ff;
+    --muted-ink: #5a5240;
 
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0ab;
-    --text-muted: #52525b;
+    --bg-primary: var(--cream);
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #ffffff;
 
-    --accent-blue: #3b82f6;
-    --accent-purple: #10b981;
-    /* Default UI accent shifted to Green Glow */
-    --accent-purple-glow: rgba(16, 185, 129, 0.15);
-    --accent-purple-glow-heavy: rgba(16, 185, 129, 0.4);
+    --text-primary: var(--ink);
+    --text-secondary: var(--muted-ink);
+    --text-muted: var(--muted-ink);
 
-    --border-color: #27272a;
-    --border-color-focus: #52525b;
-    --border-glow: rgba(255, 255, 255, 0.1);
+    --accent-blue: var(--sky);
+    --accent-purple: var(--teal);
+    --accent-purple-glow: rgba(18, 179, 164, 0.15);
+    --accent-purple-glow-heavy: rgba(18, 179, 164, 0.4);
 
-    --card-radius: 12px;
-    --btn-radius: 8px;
+    --border-color: var(--ink);
+    --border-color-focus: var(--ink);
+    --border-glow: rgba(23, 20, 13, 0.1);
+
+    --card-radius: 22px;
+    --btn-radius: 100px;
 
     --transition-fast: 0.15s ease;
     --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* Glassmorphism custom tokens */
-    --surface-glass: rgba(10, 10, 12, 0.45);
-    --border-glass: rgba(255, 255, 255, 0.08);
-    --shadow-glass: rgba(0, 0, 0, 0.5);
-    --card-bg-glass: rgba(18, 18, 21, 0.6);
-    --fog-opacity: 0.35;
+    --surface-glass: #ffffff;
+    --border-glass: var(--ink);
+    --shadow-glass: 8px 8px 0 var(--ink);
+    --card-bg-glass: #ffffff;
+    --fog-opacity: 0;
 
-    /* Secondary element hover/active colors */
-    --nav-hover: rgba(255, 255, 255, 0.03);
-    --nav-active: rgba(255, 255, 255, 0.06);
-    --nav-active-border: rgba(255, 255, 255, 0.08);
+    --nav-hover: var(--mustard);
+    --nav-active: var(--teal);
+    --nav-active-border: var(--ink);
 
-    /* Code/sentence selection overlays */
-    --sentence-hover: rgba(255, 255, 255, 0.04);
-    --sentence-active: rgba(255, 255, 255, 0.08);
+    --sentence-hover: rgba(23, 20, 13, 0.04);
+    --sentence-active: rgba(23, 20, 13, 0.08);
 
-    /* Scrollbar track & handle */
-    --scrollbar-track: rgba(255, 255, 255, 0.02);
-    --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+    --scrollbar-track: var(--cream);
+    --scrollbar-thumb: var(--ink);
 }
 
-html[data-theme="light"] {
-    --bg-primary: #FAF9F6;
-    /* Soft Alabaster off-white background */
-    --bg-secondary: #FCFBF7;
-    /* Subtle Ivory base panels */
-    --bg-tertiary: #F5F5F0;
-    /* Lighter Muted Bone utility background */
+html[data-theme="dark"] {
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --bg-tertiary: #2a2a2a;
 
-    --text-primary: #1E2229;
-    /* Warm Charcoal text for comfortable reading */
-    --text-secondary: #505663;
-    /* Muted Slate for subtext */
-    --text-muted: #8F949F;
-    /* Desaturated Slate for labels */
+    --text-primary: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --text-muted: #71717a;
 
-    --accent-blue: #2563eb;
-    /* Slightly deeper blue for light contrast */
-    --accent-purple: #059669;
-    /* Slightly deeper emerald green */
-    --accent-purple-glow: rgba(5, 150, 105, 0.12);
-    --accent-purple-glow-heavy: rgba(5, 150, 105, 0.3);
+    --border-color: #3f3f46;
+    --border-color-focus: #52525b;
+    --border-glow: rgba(255, 255, 255, 0.05);
 
-    --border-color: #E8E6E0;
-    /* Warm Sage Gray borders */
-    --border-color-focus: #D6D3CB;
-    /* Frosted Pebble for focus boundaries */
-    --border-glow: rgba(30, 34, 41, 0.03);
-
-    /* Glassmorphism custom tokens */
-    --surface-glass: rgba(252, 251, 247, 0.65);
-    /* Frosted ivory glass */
-    --border-glass: rgba(232, 230, 224, 0.4);
-    /* Frosted warm-sage-gray border */
-    --shadow-glass: rgba(30, 34, 41, 0.06);
-    /* Soft warm-charcoal dropshadow */
-    --card-bg-glass: rgba(245, 245, 240, 0.7);
-    /* Frosted muted-bone card background */
+    --surface-glass: rgba(30, 30, 34, 0.85);
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --shadow-glass: 8px 8px 0 rgba(0,0,0,0.5);
+    --card-bg-glass: rgba(30, 30, 34, 0.95);
     --fog-opacity: 0.15;
-    /* Desaturated/subtle fog opacity */
 
-    /* Secondary element hover/active colors */
-    --nav-hover: rgba(30, 34, 41, 0.03);
-    --nav-active: rgba(30, 34, 41, 0.04);
-    --nav-active-border: rgba(30, 34, 41, 0.06);
+    --nav-hover: rgba(255, 255, 255, 0.05);
+    --nav-active: rgba(255, 255, 255, 0.1);
+    --nav-active-border: rgba(255, 255, 255, 0.2);
 
-    /* Code/sentence selection overlays */
-    --sentence-hover: rgba(30, 34, 41, 0.02);
-    --sentence-active: rgba(30, 34, 41, 0.04);
+    --sentence-hover: rgba(255, 255, 255, 0.05);
+    --sentence-active: rgba(255, 255, 255, 0.1);
 
-    /* Scrollbar track & handle */
-    --scrollbar-track: rgba(30, 34, 41, 0.02);
-    --scrollbar-thumb: rgba(30, 34, 41, 0.1);
+    --scrollbar-track: #121212;
+    --scrollbar-thumb: #3f3f46;
 }
 
 /* -------------------------------------------------------------
@@ -2777,4 +2756,66 @@ mark.mark-hybrid {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+}
+/* Memphis Overrides */
+body {
+    font-family: 'DM Sans', sans-serif !important;
+    background-color: var(--cream) !important;
+    color: var(--ink) !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Bricolage Grotesque', sans-serif !important;
+}
+
+.panel, .card, .metadata-card, .progress-card, .sidebar {
+    background: #fff !important;
+    border: 3px solid var(--ink) !important;
+    border-radius: 22px !important;
+    box-shadow: 8px 8px 0 var(--ink) !important;
+    color: var(--ink) !important;
+}
+
+.btn-primary, .btn-secondary, .btn-outline {
+    font-family: 'DM Sans', sans-serif !important;
+    font-weight: 700 !important;
+    border: 3px solid var(--ink) !important;
+    border-radius: 100px !important;
+    box-shadow: 5px 5px 0 var(--ink) !important;
+    transition: transform .15s, box-shadow .15s !important;
+    color: var(--ink) !important;
+    background: #fff !important;
+}
+
+.btn-primary {
+    background: var(--coral) !important;
+    color: #fff !important;
+}
+
+.btn-primary:hover, .btn-secondary:hover, .btn-outline:hover {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 3px 3px 0 var(--ink) !important;
+}
+
+.sidebar-nav .nav-item.active {
+    background: var(--mustard) !important;
+    border: 2px solid var(--ink) !important;
+    box-shadow: 3px 3px 0 var(--ink) !important;
+    border-radius: 12px !important;
+}
+
+.sidebar-nav .nav-item.active a {
+    color: var(--ink) !important;
+}
+
+header.global-header {
+    background: var(--cream) !important;
+    border-bottom: 3px solid var(--ink) !important;
+}
+
+#global-search-input {
+    background: #fff !important;
+    border: 2px solid var(--ink) !important;
+    border-radius: 100px !important;
+    color: var(--ink) !important;
 }

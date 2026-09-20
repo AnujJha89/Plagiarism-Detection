@@ -14,46 +14,19 @@ from app.main import app
 
 @pytest.fixture(scope="session", autouse=True)
 def clean_test_db_and_index():
-    """Ensures test database tables and ES index are initialized and cleaned up."""
+    """Ensures test database tables and FAISS index are initialized and cleaned up."""
     from app.services.database import DatabaseService
-    from app.services.elasticsearch_client import get_es_client, initialize_es
     
-    # Initialize DB (creates extension, tables, HNSW index)
     try:
         DatabaseService.initialize_db()
+        DatabaseService.clear_db()
     except Exception as e:
-        pytest.skip(f"PostgreSQL connection failed: {e}. Make sure the Docker services are running.")
+        pytest.skip(f"Database initialization failed: {e}")
         
-    # Initialize Elasticsearch index
-    try:
-        initialize_es()
-    except Exception as e:
-        pytest.skip(f"Elasticsearch connection failed: {e}. Make sure the Docker services are running.")
-        
-    # Truncate tables before tests
-    with DatabaseService.get_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute("TRUNCATE TABLE sentences, documents CASCADE;")
-        conn.commit()
-        
-    # Delete and recreate index for clean test state
-    es = get_es_client()
-    index_name = "reference_sentences"
-    try:
-        if es.indices.exists(index=index_name):
-            es.indices.delete(index=index_name)
-        initialize_es()
-    except Exception as e:
-        pytest.skip(f"Elasticsearch re-initialization failed: {e}")
-    
     yield
     
-    # Teardown: truncate tables again
     try:
-        with DatabaseService.get_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("TRUNCATE TABLE sentences, documents CASCADE;")
-            conn.commit()
+        DatabaseService.clear_db()
     except Exception:
         pass
 

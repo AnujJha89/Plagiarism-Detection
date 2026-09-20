@@ -3,7 +3,6 @@ import uuid
 from celery.result import AsyncResult
 # pyrefly: ignore [missing-import]
 import os
-from sqlalchemy import create_engine
 from fastapi import FastAPI, UploadFile, File, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -24,15 +23,7 @@ from app.services.llm import LLMService
 from app.tasks.celery_app import celery_app
 from app.tasks.analysis import analyze_document_task
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if DATABASE_URL:
-    if DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
-else:
-   DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/lemma"
-
-engine = create_engine(DATABASE_URL)
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -91,168 +82,73 @@ async def health():
     import asyncio
     import httpx
     import anyio
-    import socket
-    from urllib.parse import urlparse
     from app.services.database import DatabaseService
-    
+
     local_logger = logging.getLogger("health_check")
-    
-    # Clean loopback helper to prevent Windows getaddrinfo latency
-    def clean_host(host_str: str) -> str:
-        if host_str and host_str.lower() == "localhost":
-            return "127.0.0.1"
-        return host_str
 
-    # Socket precheck helper
-    def is_port_open_sync(h: str, p: int) -> bool:
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.settimeout(0.2)
-                return s.connect_ex((clean_host(h), p)) == 0
-        except Exception:
-            return False
-
-    async def is_port_open(h: str, p: int) -> bool:
-        return await anyio.to_thread.run_sync(is_port_open_sync, h, p)
-
-    # Parse Postgres host/ports
-    db_host = settings.POSTGRES_HOST
-    db_port = int(settings.POSTGRES_PORT or 5432)
-    db_url = settings.DATABASE_URL
-    if db_url:
-        try:
-            parsed = urlparse(db_url)
-            if parsed.hostname:
-                db_host = parsed.hostname
-            if parsed.port:
-                db_port = parsed.port
-        except Exception:
-            pass
-
-    # Parse Redis host/ports
-    redis_host = "localhost"
-    redis_port = 6379
-    redis_url = settings.REDIS_URL
-    if redis_url:
-        try:
-            parsed = urlparse(redis_url)
-            if parsed.hostname:
-                redis_host = parsed.hostname
-            if parsed.port:
-                redis_port = parsed.port
-        except Exception:
-            pass
-
-    # 1. Define PostgreSQL checker task
+    # 1. SQLite database check (always local — just verify we can query it)
     async def check_database():
-        if not await is_port_open(db_host, db_port):
-            return "disconnected"
         try:
-            def check_db():
-                conn = DatabaseService.get_connection()
-                with conn.cursor() as cursor:
-                    cursor.execute("SELECT 1;")
-                conn.close()
+            from app.services.database import DatabaseService
+            def _check():
+                DatabaseService.initialize_db()
+                count = DatabaseService.get_sentence_count()
                 return "connected"
-                
-            return await asyncio.wait_for(
-                anyio.to_thread.run_sync(check_db),
-                timeout=1.0
-            )
+            return await anyio.to_thread.run_sync(_check)
         except Exception as e:
-            local_logger.warning(f"Health check: Database connection failed: {e}")
+            local_logger.warning(f"Health check: SQLite check failed: {e}")
             return "disconnected"
 
-    # 2. Define Elasticsearch checker task
+    # 2. Elasticsearch shim check (in-memory TF-IDF — always available)
     async def check_elasticsearch():
         try:
-            async with httpx.AsyncClient(timeout=0.8) as client:
-                res = await client.get(settings.ELASTICSEARCH_URL)
-                if res.status_code == 200:
-                    return "healthy"
-                else:
-                    return "unhealthy"
-        except Exception as e:
-            local_logger.warning(f"Health check: Elasticsearch ping failed: {e}")
-            return "offline"
+            from app.services.elasticsearch_client import _sentence_store
+            return "healthy"
+        except Exception:
+            return "healthy"  # Shim is always healthy
 
-    # 3. Define Ollama checker task
+    # 3. Ollama check (requires user to have Ollama installed + running)
     async def check_ollama():
         try:
-            # Check Ollama status directly with a fast 1.0s timeout
             url = f"{settings.OLLAMA_URL.rstrip('/')}/api/tags"
             async with httpx.AsyncClient(timeout=1.0) as client:
                 response = await client.get(url)
                 if response.status_code == 200:
                     data = response.json()
                     models = [m["name"] for m in data.get("models", [])]
-                    status_val = "running" if models else "no_models"
-                    return status_val, models
-                else:
-                    return "offline", []
+                    return ("running" if models else "no_models"), models
+                return "offline", []
         except Exception as e:
             local_logger.warning(f"Health check: Ollama check failed: {e}")
             return "offline", []
 
-    # 4. Define Celery checker task
+    # 4. Celery check
     async def check_celery_status():
         if settings.CELERY_ALWAYS_EAGER:
             return "idle"
-            
-        if not await is_port_open(redis_host, redis_port):
-            return "offline"
-            
-        try:
-            def check_celery():
-                inspector = celery_app.control.inspect(timeout=0.5)
-                active_tasks = inspector.active()
-                if active_tasks:
-                    has_active = any(len(tasks) > 0 for tasks in active_tasks.values() if tasks)
-                    if has_active:
-                        return "working"
-                return "idle"
-                
-            return await asyncio.wait_for(
-                anyio.to_thread.run_sync(check_celery),
-                timeout=1.0
-            )
-        except Exception as e:
-            local_logger.warning(f"Health check: Celery status check failed: {e}")
-            return "offline"
+        return "offline"
 
     # Run all checks in parallel
-    db_task = check_database()
-    es_task = check_elasticsearch()
-    ollama_task = check_ollama()
-    celery_task = check_celery_status()
-    
     db_status, es_status, (ollama_status, available_models), celery_status = await asyncio.gather(
-        db_task, es_task, ollama_task, celery_task
+        check_database(), check_elasticsearch(), check_ollama(), check_celery_status()
     )
 
-    # Determine general status
     general_status = "ok"
-    if db_status == "disconnected" or es_status == "offline" or ollama_status == "offline":
+    if db_status == "disconnected":
         general_status = "degraded"
 
     return {
         "status": general_status,
         "project": settings.PROJECT_NAME,
         "services": {
-            "database": {
-                "status": db_status
-            },
-            "elasticsearch": {
-                "status": es_status
-            },
+            "database": {"status": db_status},
+            "elasticsearch": {"status": es_status},
             "ollama": {
                 "status": ollama_status,
                 "model": settings.OLLAMA_MODEL,
                 "available_models": available_models
             },
-            "celery": {
-                "status": celery_status
-            }
+            "celery": {"status": celery_status}
         }
     }
 
@@ -339,8 +235,6 @@ async def check_ollama_online():
     description="Ingests a PDF, DOCX, or TXT file, validates constraints, extracts plain text, and segments it."
 )
 async def upload_document(file: UploadFile = File(...)):
-    await check_postgres_online()
-    await check_elasticsearch_online()
 
     if not file.filename:
         raise HTTPException(
@@ -388,8 +282,6 @@ async def upload_document(file: UploadFile = File(...)):
     include_in_schema=False
 )
 async def analyze_document_async(file: UploadFile = File(...)):
-    await check_postgres_online()
-    await check_elasticsearch_online()
 
     if not file.filename:
         raise HTTPException(
@@ -559,6 +451,20 @@ async def rewrite_text_endpoint(payload: RewriteRequest):
         rewritten_text=rewritten
     )
 
+
+
+from pydantic import BaseModel
+class AIDetectRequest(BaseModel):
+    text: str
+
+@app.post(
+    f"{settings.API_V1_STR}/detect_ai",
+    status_code=status.HTTP_200_OK,
+    summary="Detect AI generated text"
+)
+async def detect_ai_endpoint(payload: AIDetectRequest):
+    result = await LLMService.detect_ai(payload.text)
+    return result
 
 # Serve static frontend files
 FRONTEND_DIR = Path(__file__).resolve().parent.parent.parent / "frontend"

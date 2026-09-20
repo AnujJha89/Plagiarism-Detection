@@ -60,6 +60,6 @@ echo =======================================================================
 echo.
 
 set PYTHONPATH=backend
-python -m uvicorn app.main:app --reload --port 8000
+python -m uvicorn app.main:app --host 0.0.0.0 --reload --port 8000
 
 pause

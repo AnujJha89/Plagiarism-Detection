@@ -4,7 +4,7 @@ Lemma is a high-performance, local-first plagiarism analysis and academic text r
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
 * **Dual-Tier Plagiarism Matcher**: Combines classical lexical matching (TF-IDF + Cosine Similarity) with deep vector semantic indexing (Sentence-Transformers + local FAISS index) to detect both verbatim copy-pastes and complex paraphrasing.
 * **Precision Coordinate Mapping**: Utilizes an optimized `spaCy` tokenization pipeline to segment documents into sentences, explicitly preserving absolute character index boundaries (`start_char`, `end_char`) for exact frontend styling.
@@ -15,7 +15,7 @@ Lemma is a high-performance, local-first plagiarism analysis and academic text r
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 * **Frontend**: Basic HTML5, CSS3, and Vanilla JavaScript (Minimally designed high-contrast `#000000` dark theme with glassmorphic overlays and custom Canvas animations).
 * **API Service**: FastAPI (Python) using asynchronous patterns, serving static UI assets directly.
@@ -26,7 +26,7 @@ Lemma is a high-performance, local-first plagiarism analysis and academic text r
 
 ---
 
-## 📂 Repository Directory Structure
+## Repository Directory Structure
 
 ```
 lemma/
@@ -84,7 +84,7 @@ lemma/
 
 ---
 
-## ⚙️ Quick Start (Local Setup)
+## Quick Start (Local Setup)
 
 ### Prerequisites
 
@@ -129,12 +129,12 @@ Double-click or run the root helper script to install dependencies, setup spaCy,
 ```
 
 ### 4. Visit the Application
-* Access the **Web Interface** at: 👉 **[http://localhost:8000](http://localhost:8000)** (or go straight to **[http://localhost:8000/dashboard.html](http://localhost:8000/dashboard.html)**).
+* Access the **Web Interface** at: **[http://localhost:8000](http://localhost:8000)** (or go straight to **[http://localhost:8000/dashboard.html](http://localhost:8000/dashboard.html)**).
 * Access the **Swagger API Docs** at: **[http://localhost:8000/docs](http://localhost:8000/docs)**.
 
 ---
 
-## 📡 Core API Documentation (Implemented Endpoints)
+## Core API Documentation (Implemented Endpoints)
 
 ### `GET /api/v1/health` (or `/health`)
 * **Purpose**: Returns operational status.
@@ -199,7 +199,7 @@ Double-click or run the root helper script to install dependencies, setup spaCy,
 
 ---
 
-## 🧪 Running the Test Suite
+## Running the Test Suite
 
 We use `pytest` for unit and integration testing. Eager mode is forced automatically in tests, removing the need for a running Redis server. Execute the test suite with:
 
@@ -209,7 +209,7 @@ We use `pytest` for unit and integration testing. Eager mode is forced automatic
 
 ---
 
-## 🗺️ Build Roadmap
+## Build Roadmap
 
 * [x] **Phase 1**: Core Ingestion, Parsing Service & spaCy Coordinate Segmenter
 * [x] **Phase 2**: TF-IDF Matrix & Semantic Embeddings Dual Matching Engine (SQLite + FAISS storage)

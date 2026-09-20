@@ -57,15 +57,16 @@ class Settings(BaseSettings):
     POSTGRES_HOST: str = "localhost"
     POSTGRES_PORT: int = 5432
     POSTGRES_DB: str = "lemma"
-    POSTGRES_USER: str = "postgres"
-    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_USER: str = ""
+    POSTGRES_PASSWORD: str = ""
     
     # Elasticsearch Settings
     ELASTICSEARCH_URL: str = "http://localhost:9200"
     
     # Online Retrieval Settings
-    ENABLE_ONLINE_RETRIEVAL: bool = True
+    ENABLE_ONLINE_RETRIEVAL: bool = False
     SEMANTIC_SCHOLAR_API_KEY: str | None = None
+    GEMINI_API_KEY: str | None = None
     MAX_ONLINE_CANDIDATES_PER_QUERY: int = 30
     
     # Deprecated/Fallback Settings

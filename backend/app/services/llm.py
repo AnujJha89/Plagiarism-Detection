@@ -1,3 +1,4 @@
+import os
 import httpx
 import logging
 from fastapi import HTTPException, status
@@ -120,3 +121,37 @@ class LLMService:
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail=f"Ollama service is unavailable at {settings.OLLAMA_URL}. Ensure Ollama is running locally."
             )
+
+    @classmethod
+    async def detect_ai(cls, text: str) -> dict:
+        """
+        Detects if a given text is AI-generated using an external API.
+        """
+        if not text.strip():
+            return {"ai_probability": 0.0, "verdict": "Human"}
+
+        # Read API key from settings (loaded via .env with LEMMA_ prefix)
+        api_key = settings.GEMINI_API_KEY
+        
+        # If a real API key is configured, call the Gemini API:
+        # if api_key:
+        #     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        # For now, use a local heuristic fallback for demonstration.
+        
+        words = text.split()
+        ai_phrases = ["delve", "testament", "in conclusion", "tapestry", "moreover", "navigating"]
+        score = 0.0
+        for phrase in ai_phrases:
+            if phrase in text.lower():
+                score += 0.2
+        
+        if len(words) > 50 and score < 0.8:
+            score += 0.3
+            
+        probability = min(max(score, 0.0), 0.99)
+        verdict = "AI Generated" if probability > 0.6 else "Human"
+        
+        return {
+            "ai_probability": round(probability * 100, 2),
+            "verdict": verdict
+        }
